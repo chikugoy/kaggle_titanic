@@ -38,6 +38,12 @@ for dataset in combine:
 
 pd.crosstab(train_df['Title'], train_df['Sex'])
 
+# Titleを序数に変換
+title_mapping = {"Mr": 1, "Miss": 2, "Mrs": 3, "Master": 4, "Rare": 5}
+for dataset in combine:
+    dataset['Title'] = dataset['Title'].map(title_mapping)
+    dataset['Title'] = dataset['Title'].fillna(0)
+
 # Name削除
 train_df = train_df.drop(['Name', 'PassengerId'], axis=1)
 test_df = test_df.drop(['Name'], axis=1)
@@ -96,4 +102,91 @@ train_df.head()
 for dataset in combine:
     dataset['FamilySize'] = dataset['SibSp'] + dataset['Parch'] + 1
 
+# Embarked欠損値を除外して最頻値で穴埋めをする
+freq_port = train_df.Embarked.dropna().mode()[0]
+for dataset in combine:
+    dataset['Embarked'] = dataset['Embarked'].fillna(freq_port)
 
+# Embarked特徴量を数値に変換
+for dataset in combine:
+    dataset['Embarked'] = dataset['Embarked'].map( {'S': 0, 'C': 1, 'Q': 2} ).astype(int)
+
+# 運賃の小数点第二位以下を四捨五入
+test_df['Fare'].fillna(test_df['Fare'].dropna().median(), inplace=True)
+
+# FareBand特徴量を作成
+train_df['FareBand'] = pd.qcut(train_df['Fare'], 4)
+
+# FareBandに基づいてFare特徴量を序数に変換
+for dataset in combine:
+    dataset.loc[ dataset['Fare'] <= 7.91, 'Fare'] = 0
+    dataset.loc[(dataset['Fare'] > 7.91) & (dataset['Fare'] <= 14.454), 'Fare'] = 1
+    dataset.loc[(dataset['Fare'] > 14.454) & (dataset['Fare'] <= 31), 'Fare']   = 2
+    dataset.loc[ dataset['Fare'] > 31, 'Fare'] = 3
+    dataset['Fare'] = dataset['Fare'].astype(int)
+
+train_df = train_df.drop(['FareBand'], axis=1)
+combine = [train_df, test_df]
+
+# データを読み込ませる準備
+# X_trainには応答変数（答えとなる特徴量）を除いた予測変数（応答変数を予測するために使う特徴量のこと）を入れる
+X_train = train_df.drop("Survived", axis=1)
+# Y_trainには応答変数のみを入れる
+Y_train = train_df["Survived"]
+# X_testにはテストデータを格納したデータフレームを入れ
+X_test  = test_df.drop("PassengerId", axis=1).copy()
+X_train.shape, Y_train.shape, X_test.shape
+
+# ロジスティック回帰
+logreg = LogisticRegression(solver='liblinear')
+logreg.fit(X_train, Y_train)
+Y_pred = logreg.predict(X_test)
+acc_log = round(logreg.score(X_train, Y_train) * 100, 2)
+acc_log
+
+coeff_df = pd.DataFrame(train_df.columns.delete(0))
+coeff_df.columns = ['Feature']
+coeff_df["Correlation"] = pd.Series(logreg.coef_[0])
+
+# Support Vector Machines
+svc = SVC(gamma="scale")
+svc.fit(X_train, Y_train)
+Y_pred = svc.predict(X_test)
+acc_svc = round(svc.score(X_train, Y_train) * 100, 2)
+acc_svc
+
+# k近傍法
+knn = KNeighborsClassifier(n_neighbors = 3)
+knn.fit(X_train, Y_train)
+Y_pred = knn.predict(X_test)
+acc_knn = round(knn.score(X_train, Y_train) * 100, 2)
+acc_knn
+
+# Gaussian Naive Bayes
+gaussian = GaussianNB()
+gaussian.fit(X_train, Y_train)
+Y_pred = gaussian.predict(X_test)
+acc_gaussian = round(gaussian.score(X_train, Y_train) * 100, 2)
+acc_gaussian
+
+# Perceptron
+perceptron = Perceptron()
+perceptron.fit(X_train, Y_train)
+Y_pred = perceptron.predict(X_test)
+acc_perceptron = round(perceptron.score(X_train, Y_train) * 100, 2)
+acc_perceptron
+
+# Decision Tree
+decision_tree = DecisionTreeClassifier()
+decision_tree.fit(X_train, Y_train)
+Y_pred = decision_tree.predict(X_test)
+acc_decision_tree = round(decision_tree.score(X_train, Y_train) * 100, 2)
+acc_decision_tree
+
+# Random Forest
+random_forest = RandomForestClassifier(n_estimators=100)
+random_forest.fit(X_train, Y_train)
+Y_pred = random_forest.predict(X_test)
+random_forest.score(X_train, Y_train)
+acc_random_forest = round(random_forest.score(X_train, Y_train) * 100, 2)
+acc_random_forest
