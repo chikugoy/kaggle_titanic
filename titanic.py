@@ -1,6 +1,7 @@
 # 参考
 # https://qiita.com/zenonnp/items/9cbb2860505a32059d89
 # https://qiita.com/taki_tflare/items/8850ac5ba8b504a171aa
+# https://www.kaggle.com/currypurin/titanic-lightgbm
 
 # data analysis and wrangling
 import pandas as pd
@@ -22,8 +23,8 @@ from sklearn.linear_model import Perceptron
 from sklearn.linear_model import SGDClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
-
-from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import cross_val_score, train_test_split, KFold
 
 import lightgbm as lgb
 
@@ -251,27 +252,84 @@ def execute():
     # sub['Survived'] = list(map(int, y_pred))
     # sub.to_csv('submission.csv', index=False)
 
-    X_train, X_valid, y_train, y_valid = train_test_split(
-        X_train, Y_train, test_size=0.3, random_state=0, stratify=Y_train)
-    categorical_features = ['Embarked', 'Pclass', 'Sex']
+    # =================================================================================
+    # 勾配ブースティング決定木 (Gradient Boosting Decision Tree)
 
-    lgb_train = lgb.Dataset(
-        X_train, y_train, categorical_feature=categorical_features)
+    # LightGBMの分類器をインスタンス化
+    gbm = lgb.LGBMClassifier(objective='binary')
 
-    lgb_eval = lgb.Dataset(X_valid, y_valid, reference=lgb_train,
-                           categorical_feature=categorical_features)
-
+    # 試行するパラメータを羅列する
     params = {
-        'objective': 'binary'
+        'max_depth': [2, 3, 4, 5],
+        'reg_alpha': [0, 1, 10, 100],
+        'reg_lambda': [0, 1, 10, 100],
     }
 
-    model = lgb.train(params, lgb_train,
-                      valid_sets=[lgb_train, lgb_eval],
-                      verbose_eval=10,
-                      num_boost_round=1000,
-                      early_stopping_rounds=10)
-    #print(model)
+    grid_search = GridSearchCV(
+                            gbm,  # 分類器を渡す
+                            param_grid=params,  # 試行してほしいパラメータを渡す
+                            cv=3,  # 3分割交差検証でスコアを確認
+                            )
 
+    grid_search.fit(X_train, Y_train)  # データを渡す
+
+    print(grid_search.best_score_)  # ベストスコアを表示
+    print(grid_search.best_params_)  # ベストスコアのパラメータを表示
+
+    # X_trainとY_trainをtrainとvalidに分割
+    train_x, valid_x, train_y, valid_y = train_test_split(
+        X_train, Y_train, test_size=0.33, random_state=0)
+
+    # trainとvalidを指定し学習
+    gbm.fit(train_x, train_y, eval_set = [(valid_x, valid_y)],
+            early_stopping_rounds=20,  # 20回連続でlossが下がらなかったら終了
+            verbose=10  # 10round毎に、lossを表示
+    ) ;
+
+    # valid_xについて推論
+    oof = gbm.predict(valid_x, num_iteration=gbm.best_iteration_)  # oofはout of fold
+    print('score', round(accuracy_score(valid_y, oof)*100,2), '%')  # 正解率の表示
+
+    # # testの予測
+    # test_pred = gbm.predict(test, num_iteration=gbm.best_iteration_)  # testの予測
+    # sample_submission['Survived'] = test_pred  # sample_submissionのSurvived列をtest_predに置き換え
+    # sample_submission.to_csv('train_test_split.csv', index=False)  # csvファイルの書き出し
+
+    kf = KFold(n_splits=3)  # 3分割交差検証のためにインスタンス化
+
+    # スコアとモデルを格納するリスト
+    score_list = []
+    models = []
+
+    print(X_train.columns)
+
+    # 重要度
+    print(pd.DataFrame({'特徴': X_train.columns,
+        'importance':gbm.feature_importances_}).sort_values('importance',
+        ascending=False))
+
+    for fold_, (train_index, valid_index) in enumerate(kf.split(X_train, Y_train)):
+        train_x = X_train.iloc[train_index]
+        valid_x = X_train.iloc[valid_index]
+        train_y = Y_train[train_index]
+        valid_y = Y_train[valid_index]
+        
+        print(f'fold{fold_ + 1} start')
+
+        # {'max_depth': 2, 'reg_alpha': 0, 'reg_lambda': 10}
+        gbm = lgb.LGBMClassifier(objective='binary', max_depth=2, reg_alpha=0,
+                             reg_lambda=10, importance_type='gain')
+        gbm.fit(train_x, train_y, eval_set = [(valid_x, valid_y)],
+                    early_stopping_rounds=20,
+                    categorical_feature=['Sex', 'Embarked', 'Age'],
+                    verbose= -1) # 学習の状況を表示しない
+        
+        oof = gbm.predict(valid_x, num_iteration=gbm.best_iteration_)
+        score_list.append(round(accuracy_score(valid_y, oof)*100,2))
+        models.append(gbm)  # 学習が終わったモデルをリストに入れておく
+        print(f'fold{fold_ + 1} end\n' )
+
+    print(score_list, '平均score', np.mean(score_list), "%")  
 
 try:
     print('start')
