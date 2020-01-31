@@ -23,7 +23,9 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
 
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, train_test_split
+
+import lightgbm as lgb
 
 
 def execute():
@@ -244,6 +246,32 @@ def execute():
 
     for i in range(len(names)):
         print(names[i], results[i])
+
+    # sub = pd.DataFrame(pd.read_csv('../input/titanic/test.csv')['PassengerId'])
+    # sub['Survived'] = list(map(int, y_pred))
+    # sub.to_csv('submission.csv', index=False)
+
+    X_train, X_valid, y_train, y_valid = train_test_split(
+        X_train, Y_train, test_size=0.3, random_state=0, stratify=Y_train)
+    categorical_features = ['Embarked', 'Pclass', 'Sex']
+
+    lgb_train = lgb.Dataset(
+        X_train, y_train, categorical_feature=categorical_features)
+
+    lgb_eval = lgb.Dataset(X_valid, y_valid, reference=lgb_train,
+                           categorical_feature=categorical_features)
+
+    params = {
+        'objective': 'binary'
+    }
+
+    model = lgb.train(params, lgb_train,
+                      valid_sets=[lgb_train, lgb_eval],
+                      verbose_eval=10,
+                      num_boost_round=1000,
+                      early_stopping_rounds=10)
+    #print(model)
+
 
 try:
     print('start')

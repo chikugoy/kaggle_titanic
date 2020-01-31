@@ -7,7 +7,9 @@ FROM continuumio/anaconda3:2019.03
 RUN pip install --upgrade pip && \
     pip install autopep8 && \
     pip install Keras && \
-    pip install tensorflow 
+    pip install tensorflow && \ 
+    conda install -y -c conda-forge lightgbm && \
+    conda install -y -c conda-forge xgboost
 
 # コンテナ側のルート直下にworkdir/（任意）という名前の作業ディレクトリを作り移動する
 WORKDIR /workdir
