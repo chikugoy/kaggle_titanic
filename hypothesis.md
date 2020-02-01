@@ -1,3 +1,7 @@
+# 参考
+# https://qiita.com/zenonnp/items/9cbb2860505a32059d89
+# https://qiita.com/taki_tflare/items/8850ac5ba8b504a171aa
+# https://www.kaggle.com/currypurin/titanic-lightgbm
 
 # 特微量分類
 
@@ -29,6 +33,11 @@ Continous: Age, Fare. Discrete: SibSp, Parch.
 * 欠損値（空白やnullやNaN）が含まれている特微量はないか？
 
 * データセットでは数値タイプの特徴量の分布はどうなっているのか？
+
+* 統計量を確認  
+https://qiita.com/ryo111/items/f62a43da6764f58823a5
+
+
 
 # 分析種類
 

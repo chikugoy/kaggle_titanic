@@ -1,8 +1,3 @@
-# 参考
-# https://qiita.com/zenonnp/items/9cbb2860505a32059d89
-# https://qiita.com/taki_tflare/items/8850ac5ba8b504a171aa
-# https://www.kaggle.com/currypurin/titanic-lightgbm
-
 # data analysis and wrangling
 import pandas as pd
 import numpy as np
