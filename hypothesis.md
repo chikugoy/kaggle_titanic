@@ -23,6 +23,17 @@
 * Embarked：乗船場（C = Cherbourg, Q = Queenstown, S = Southampton）
 
 
+# 最終形
+
+```
+     Pclass  Sex  Age  SibSp  Parch  Fare  Embarked  Title  FamilySize
+0         3    0    1      1      0     0         0    1.0           2
+1         1    1    2      1      0     3         1    3.0           2
+2         3    1    1      0      0     1         0    2.0           1
+3         1    1    2      1      0     3         0    3.0           2
+4         3    0    2      0      0     1         0    1.0           1
+5         3    0    1      0      0     1         2    1.0           1
+```
 
 # 特微量分類
 
