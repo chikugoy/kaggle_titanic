@@ -23,8 +23,8 @@ import lightgbm as lgb
 
 
 def execute():
-    train_df = pd.read_csv('../input/train.csv')
-    test_df = pd.read_csv('../input/test.csv')
+    train_df = pd.read_csv('../../../input/train.csv')
+    test_df = pd.read_csv('../../../input/test.csv')
     combine = [train_df, test_df]
 
     print(train_df.columns.values)
@@ -147,6 +147,8 @@ def execute():
     # X_testにはテストデータを格納したデータフレームを入れ
     X_test = test_df.drop("PassengerId", axis=1).copy()
     X_train.shape, Y_train.shape, X_test.shape
+
+    print(X_train)
 
     pd.to_pickle(train_df, "output/train_df.pkl")
     pd.to_pickle(X_train, "output/X_train.pkl")
