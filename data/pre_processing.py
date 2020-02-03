@@ -110,6 +110,16 @@ def execute():
     for dataset in combine:
         dataset['FamilySize'] = dataset['SibSp'] + dataset['Parch'] + 1
 
+    # 一人で乗船特微量
+    for dataset in combine:
+        dataset['IsAlone'] = 0
+        dataset.loc[dataset['FamilySize'] == 1, 'IsAlone'] = 1
+
+    # IsAloneが良さげなので、Parch、SibSp、およびFamilySize特徴量を削除
+    train_df = train_df.drop(['Parch', 'SibSp', 'FamilySize'], axis=1)
+    test_df = test_df.drop(['Parch', 'SibSp', 'FamilySize'], axis=1)
+    combine = [train_df, test_df]
+
     # Embarked欠損値を除外して最頻値で穴埋めをする
     freq_port = train_df.Embarked.dropna().mode()[0]
     for dataset in combine:
@@ -119,6 +129,10 @@ def execute():
     for dataset in combine:
         dataset['Embarked'] = dataset['Embarked'].map(
             {'S': 0, 'C': 1, 'Q': 2}).astype(int)
+
+    # PclassとAgeを組み合わせた人工的な特徴を作成
+    for dataset in combine:
+        dataset['Age*Class'] = dataset.Age * dataset.Pclass
 
     # 運賃の小数点第二位以下を四捨五入
     test_df['Fare'].fillna(test_df['Fare'].dropna().median(), inplace=True)
