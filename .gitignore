@@ -3,3 +3,4 @@
 *.py[cod]
 *.log
 __pycache__/
+*.pkl
