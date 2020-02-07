@@ -35,6 +35,7 @@ class PreProcessingLogic(AbstractLogic):
         
         self._output.model = self._input.model
         self._output.cv_value = self._input.cv_value
+        self._output.target_cols = self._input.target_cols
         self._output.grid_search_params = self._input.grid_search_params
         self._output.random_search_params = self._input.random_search_params
 

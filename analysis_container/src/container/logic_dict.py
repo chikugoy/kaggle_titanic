@@ -23,6 +23,10 @@ from logic.data_wrangling.pre_processing.pre_processing_logic import PreProcessi
 from logic.data_wrangling.pre_processing.interface.i_pre_processing_input import IPreProcessingInput 
 from logic.data_wrangling.pre_processing.interface.i_pre_processing_output import IPreProcessingOutput
 
+from logic.data_wrangling.data_pattern.data_pattern_logic import DataPatternLogic
+from logic.data_wrangling.data_pattern.interface.i_data_pattern_input import IDataPatternInput 
+from logic.data_wrangling.data_pattern.interface.i_data_pattern_output import IDataPatternOutput
+
 class LogicDict:
     """ロジック実行用のキーバリュー格納用クラス
 

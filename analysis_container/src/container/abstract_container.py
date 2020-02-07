@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import concurrent.futures
 from abc import ABCMeta, abstractmethod
 
 sys.path.append('../')
@@ -21,6 +22,8 @@ class AbstractContainer(metaclass=ABCMeta):
     _logger: Logger = Logger.get_instance()
     _logic_outputs: list = []
     _current_logic_output: AbstractInterface
+    _is_thread_pool_executor: bool = False
+    _thread_pool_max_workers: int = 2
 
     def __init__(self):
         """constructor

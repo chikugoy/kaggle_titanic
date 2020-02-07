@@ -62,7 +62,8 @@ class SklearnLogic(AbstractLogic):
             results.append({
                 'Type': 'GridSearch',
                 'Score': score,
-                'Params': clf.best_params_
+                'Params': clf.best_params_,
+                'Target_cols': self._input.target_cols
             })
 
         # ランダムサーチ
@@ -78,7 +79,8 @@ class SklearnLogic(AbstractLogic):
             results.append({
                 'Type': 'RandomSearch',
                 'Score': score,
-                'Params': clf.best_params_
+                'Params': clf.best_params_,
+                'Target_cols': self._input.target_cols
             })
 
         # デフォルトサーチ
@@ -90,7 +92,8 @@ class SklearnLogic(AbstractLogic):
         results.append({
             'Type': 'Default',
             'Score': score,
-            'Params': None
+            'Params': None,
+            'Target_cols': self._input.target_cols
         })
 
         self._output.results = results

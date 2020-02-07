@@ -7,12 +7,8 @@ sys.path.append('./../../../')
 from logic.abstract_interface import AbstractInterface
 
 
-class ISklearnOutput(AbstractInterface):
-
-    model_name: str
-    results: list
+class IDataPatternInput(AbstractInterface):
 
     def __init__(self):
         super().__init__()
         pass
-
