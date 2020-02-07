@@ -19,6 +19,9 @@ from logic.analyze.light_gbm.light_gbm_logic import LightGbmLogic
 from logic.analyze.light_gbm.interface.i_light_gbm_input import ILightGbmInput
 from logic.analyze.light_gbm.interface.i_light_gbm_output import ILightGbmOutput
 
+from logic.data_wrangling.pre_processing.pre_processing_logic import PreProcessingLogic
+from logic.data_wrangling.pre_processing.interface.i_pre_processing_input import IPreProcessingInput 
+from logic.data_wrangling.pre_processing.interface.i_pre_processing_output import IPreProcessingOutput
 
 class LogicDict:
     """ロジック実行用のキーバリュー格納用クラス

@@ -137,7 +137,8 @@ def execute():
         dataset['Fare'] = dataset['Fare'].astype(int)
 
     train_df = train_df.drop(['FareBand'], axis=1)
-    combine = [train_df, test_df]
+    pd.to_pickle(train_df, "output/train_df.pkl")
+    pd.to_pickle(test_df, "output/test_df.pkl")
 
     # データを読み込ませる準備
     # X_trainには応答変数（答えとなる特徴量）を除いた予測変数（応答変数を予測するために使う特徴量のこと）を入れる
@@ -148,13 +149,9 @@ def execute():
     X_test = test_df.drop("PassengerId", axis=1).copy()
     X_train.shape, Y_train.shape, X_test.shape
 
-    print(X_train)
-
-    pd.to_pickle(train_df, "output/train_df.pkl")
     pd.to_pickle(X_train, "output/X_train.pkl")
     pd.to_pickle(Y_train, "output/Y_train.pkl")
     pd.to_pickle(X_test, "output/X_test.pkl")
-
 
 try:
     print('start')

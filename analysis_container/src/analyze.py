@@ -26,9 +26,6 @@ import lightgbm as lgb
 def execute():
 
     X_train = pd.read_pickle("data/output/X_train.pkl")
-    print(X_train)
-    return
-    
     Y_train = pd.read_pickle("data/output/Y_train.pkl")
 
     # sklearn関連分析 ****************************************
