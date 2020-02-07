@@ -19,6 +19,7 @@ class AbstractContainer(metaclass=ABCMeta):
     """
 
     _logger: Logger = Logger.get_instance()
+    _logic_outputs: list = []
     _current_logic_output: AbstractInterface
 
     def __init__(self):

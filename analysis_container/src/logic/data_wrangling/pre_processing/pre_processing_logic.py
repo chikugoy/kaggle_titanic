@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -24,25 +25,29 @@ class PreProcessingLogic(AbstractLogic):
                 self._input.output_x_test_path is None):
             raise Exception('path Nothing')
 
-        self._output.x_train_path = self._input.output_x_train_path
-        self._output.y_train_path = self._input.output_y_train_path
-        self._output.x_test_path = self._input.output_x_test_path
-        self._output.X_train = pd.read_pickle(self._input.output_x_train_path)
-        self._output.Y_train = pd.read_pickle(self._input.output_y_train_path)
-        self._output.X_test = pd.read_pickle(self._input.output_x_test_path)
+        self._output.X_train = None
+        if os.path.exists(self._input.output_x_train_path):
+            self._output.X_train = pd.read_pickle(self._input.output_x_train_path)
 
-        if (not self._output.X_train is None or
-            not self._output.X_train is None or
-                not self._output.X_train is None):
+        self._output.Y_train = None
+        if os.path.exists(self._input.output_y_train_path):
+            self._output.Y_train = pd.read_pickle(self._input.output_y_train_path)
+        
+        self._output.model = self._input.model
+        self._output.cv_value = self._input.cv_value
+        self._output.grid_search_params = self._input.grid_search_params
+        self._output.random_search_params = self._input.random_search_params
+
+        if (not self._output.X_train is None and not self._output.Y_train is None):
             return True
 
         train_df = pd.read_csv(self._input.input_train_path)
         test_df = pd.read_csv(self._input.input_test_path)
         combine = [train_df, test_df]
 
-        print(train_df.columns.values)
-        print("Before", train_df.shape, test_df.shape,
-              combine[0].shape, combine[1].shape)
+        self._logger.debug(train_df.columns.values)
+        self._logger.debug("Before train_df.shape:{0} test_df.shape:{1} combine[0].shape:{2} combine[1].shape:{3}".format(train_df.shape, test_df.shape,
+              combine[0].shape, combine[1].shape))
 
         # 'Ticket', 'Cabin'は相関が無いため、特微量から削除
         train_df = train_df.drop(['Ticket', 'Cabin'], axis=1)
@@ -153,8 +158,8 @@ class PreProcessingLogic(AbstractLogic):
             dataset['Fare'] = dataset['Fare'].astype(int)
 
         train_df = train_df.drop(['FareBand'], axis=1)
-        pd.to_pickle(train_df, "output/train_df.pkl")
-        pd.to_pickle(test_df, "output/test_df.pkl")
+        pd.to_pickle(train_df, self._input.output_x_train_path)
+        pd.to_pickle(test_df, self._input.output_y_train_path)
 
         # データを読み込ませる準備
         # X_trainには応答変数（答えとなる特徴量）を除いた予測変数（応答変数を予測するために使う特徴量のこと）を入れる
@@ -171,6 +176,6 @@ class PreProcessingLogic(AbstractLogic):
 
         self._output.X_train = X_train
         self._output.Y_train = Y_train
-        self._output.X_test = X_test
+        # self._output.X_test = X_test
 
         return True

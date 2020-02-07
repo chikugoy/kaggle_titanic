@@ -9,6 +9,7 @@ from logic.abstract_interface import AbstractInterface
 
 class ISklearnInput(AbstractInterface):
 
+    model:any
     cv_value: int
     X_train: any
     Y_train: any

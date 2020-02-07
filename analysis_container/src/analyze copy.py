@@ -1,12 +1,10 @@
 
 import sys
-import copy
 import pandas as pd
 
 from container.simulator_container import SimulatorContainer
 from container.logic_dict import LogicDict
 from logic.analyze.sklearn.interface.i_sklearn_input import ISklearnInput
-from logic.data_wrangling.pre_processing.interface.i_pre_processing_input import IPreProcessingInput
 from logic.analyze.light_gbm.interface.i_light_gbm_input import ILightGbmInput
 
 from sklearn.linear_model import LogisticRegression
@@ -27,6 +25,9 @@ import lightgbm as lgb
 
 def execute():
 
+    X_train = pd.read_pickle("data/output/X_train.pkl")
+    Y_train = pd.read_pickle("data/output/Y_train.pkl")
+
     # sklearn関連分析 ****************************************
 
     models = get_sklearn_models()
@@ -46,41 +47,26 @@ def execute():
     #     'RandomForestClassifier'
     # ]
 
-    # データ事前処理
-    iPreProcessingInput = IPreProcessingInput()
-    iPreProcessingInput.input_train_path = '../../input/train.csv'
-    iPreProcessingInput.input_test_path = '../../input/test.csv'
-    iPreProcessingInput.output_x_train_path = 'data/output/X_train.pkl'
-    iPreProcessingInput.output_y_train_path = 'data/output/Y_train.pkl'
-    iPreProcessingInput.output_x_test_path = 'data/output/X_test.pkl'
-    iPreProcessingInput.cv_value = 5
-
-    # 新規にデータ事前処理をする場合はコメントアウト
-    # X_train = pd.read_pickle("data/output/X_train.pkl")
-    # Y_train = pd.read_pickle("data/output/Y_train.pkl")
-    # iPreProcessingInput.X_train = X_train
-    # iPreProcessingInput.Y_train = Y_train
+    iSklearnInput = ISklearnInput()
+    iSklearnInput.X_train = X_train
+    iSklearnInput.Y_train = Y_train
+    iSklearnInput.cv_value = 5
 
     outputs: list = []
     for model in models:
         if not model['model_name'] in execute_model_names:
             continue
 
-        iPreProcessingInput.model = model['model_instance']
-        iPreProcessingInput.grid_search_params = model['grid_search_params']
-        iPreProcessingInput.random_search_params = model['random_search_params']
+        iSklearnInput.model = model['model_instance']
+        iSklearnInput.grid_search_params = model['grid_search_params']
+        iSklearnInput.random_search_params = model['random_search_params']
 
         logic_dict: LogicDict = LogicDict(
             [
                 {
-                    LogicDict.LOGIC_EXEC_KEY: 'PreProcessingLogic',
-                    LogicDict.LOGIC_EXEC_INPUT_KEY: 'IPreProcessingInput',
-                    LogicDict.LOGIC_EXEC_INPUT_INSTANCE: iPreProcessingInput,
-                    LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'ISklearnInput',
-                },
-                {
                     LogicDict.LOGIC_EXEC_KEY: 'SklearnLogic',
                     LogicDict.LOGIC_EXEC_INPUT_KEY: 'ISklearnInput',
+                    LogicDict.LOGIC_EXEC_INPUT_INSTANCE: iSklearnInput,
                     LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'ISklearnOutput',
                 }
             ]
@@ -92,9 +78,6 @@ def execute():
 
 
     # LightGBM分析  ****************************************
-
-    X_train = pd.read_pickle("data/output/X_train.pkl")
-    Y_train = pd.read_pickle("data/output/Y_train.pkl")
 
     iLightGbmInput = ILightGbmInput()
     iLightGbmInput.X_train = X_train
@@ -249,22 +232,6 @@ def get_sklearn_models() -> list:
             }
         },
     ]    
-
-    def get_list_all_pattern_count():
-        patterns: list = ['1', '2', '3', '4', '5']
-        list_len = len(patterns)
-        if list_len == 0 or list_len == 1:
-            return list_len
-
-        count: int = 1
-
-        copy_patterns = copy.deepcopy(patterns)
-        for i, pattern in enumerate(patterns):
-            count+=1
-            copy_patterns.pop(i)
-            if len(copy_patterns) == 0:
-                return count
-
 
 try:
     print('start')
