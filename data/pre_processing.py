@@ -19,8 +19,6 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score, train_test_split, KFold
 
-import lightgbm as lgb
-
 
 def execute():
     train_df = pd.read_csv('../input/train.csv')

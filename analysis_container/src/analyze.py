@@ -250,25 +250,22 @@ def get_sklearn_models() -> list:
         },
     ]    
 
-    def get_list_all_pattern_count():
-        patterns: list = ['1', '2', '3', '4', '5']
-        list_len = len(patterns)
-        if list_len == 0 or list_len == 1:
-            return list_len
-
-        count: int = 1
-
+def get_list_all_pattern_count(patterns):
+    all_pattern = [copy.deepcopy(patterns)]
+    for i in range(len(patterns)):
         copy_patterns = copy.deepcopy(patterns)
-        for i, pattern in enumerate(patterns):
-            count+=1
-            copy_patterns.pop(i)
-            if len(copy_patterns) == 0:
-                return count
+        copy_patterns.pop(i)
+        all_pattern.append(copy_patterns)
 
+        if len(copy_patterns) > 1:
+            all_pattern.extend  (get_list_all_pattern_count(copy_patterns))
+    
+    return set(set(list(map(tuple,all_pattern))))
 
 try:
     print('start')
-    execute()
+    # execute()
+    print(get_list_all_pattern_count(['1','2','3']))
 except Exception as e:
     print('error')
     print(e)
