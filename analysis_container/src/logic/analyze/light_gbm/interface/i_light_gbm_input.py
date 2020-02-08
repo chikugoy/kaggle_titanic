@@ -14,7 +14,7 @@ class ILightGbmInput(AbstractInterface):
     Y_train: any
     grid_search_params: dict
     random_search_params: dict
-
+    target_cols: list
 
     def __init__(self):
         super().__init__()
