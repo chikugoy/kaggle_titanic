@@ -26,8 +26,81 @@ import scipy.stats
 
 import lightgbm as lgb
 
-
 def execute():
+    start = time.time()
+
+    # データ事前処理
+    iPreProcessingInput = IPreProcessingInput()
+    iPreProcessingInput.input_train_path = '../../input/train.csv'
+    iPreProcessingInput.input_test_path = '../../input/test.csv'
+    iPreProcessingInput.output_x_train_path = 'data/output/X_train.pkl'
+    iPreProcessingInput.output_y_train_path = 'data/output/Y_train.pkl'
+    iPreProcessingInput.output_x_test_path = 'data/output/X_test.pkl'
+    iPreProcessingInput.cv_value = 5
+
+    # 新規にデータ事前処理をする場合はコメントアウト
+    X_train = pd.read_pickle("data/output/X_train.pkl")
+    Y_train = pd.read_pickle("data/output/Y_train.pkl")
+    iPreProcessingInput.X_train = X_train
+    iPreProcessingInput.Y_train = Y_train
+    # target_cols_list: list = get_list_all_pattern_count(
+    #     list(X_train.columns),
+    #     6)
+    target_cols_list: list = [
+        ['Sex', 'Age', 'Parch', 'Fare', 'Embarked', 'FamilySize']
+    ]
+
+    outputs: list = []
+
+    for target_cols in target_cols_list:
+        iPreProcessingInput.target_cols = target_cols
+
+        # sklearn関連分析 ****************************************
+
+        models = get_sklearn_models()
+
+        execute_model_names = [
+            'RandomForestClassifier'
+        ]
+
+        for model in models:
+            if not model['model_name'] in execute_model_names:
+                continue
+
+            iPreProcessingInput.model = model['model_instance']
+            iPreProcessingInput.grid_search_params = model['grid_search_params']
+            iPreProcessingInput.random_search_params = model['random_search_params']
+
+            logic_dict: LogicDict = LogicDict(
+                [
+                    {
+                        LogicDict.LOGIC_EXEC_KEY: 'PreProcessingLogic',
+                        LogicDict.LOGIC_EXEC_INPUT_KEY: 'IPreProcessingInput',
+                        LogicDict.LOGIC_EXEC_INPUT_INSTANCE: iPreProcessingInput,
+                        LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'ISklearnInput',
+                    },
+                    {
+                        LogicDict.LOGIC_EXEC_KEY: 'DataPatternLogic',
+                        LogicDict.LOGIC_EXEC_INPUT_KEY: 'ISklearnInput',
+                        LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'ISklearnInput',
+                    },
+                    {
+                        LogicDict.LOGIC_EXEC_KEY: 'SklearnLogic',
+                        LogicDict.LOGIC_EXEC_INPUT_KEY: 'ISklearnInput',
+                        LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'ISklearnOutput',
+                    }
+                ]
+            )
+
+            container = SimulatorContainer(logic_dict)
+            container.execute()
+            outputs.append(container.get_logic_output())
+
+
+
+
+
+def output_best_features():
     start = time.time()
 
     # 新規にデータ事前処理をする場合はコメントアウト
@@ -36,8 +109,12 @@ def execute():
     print(df_score_s)
     print(df_score_s.head()['target_cols'].values)
 
-    # RandomForestClassifier  Default  0.856502
-    # ('Pclass', 'Sex', 'Age', 'Parch', 'Fare', 'Embarked', 'Title', 'FamilySize')
+    # RandomForestClassifier 0.860987〜 TOP 5
+    # [('Pclass', 'Age', 'Parch', 'Fare', 'Embarked', 'FamilySize')
+    # ('Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Embarked', 'FamilySize')
+    # ('Sex', 'Age', 'Parch', 'Fare', 'Embarked', 'FamilySize')
+    # ('Sex', 'SibSp', 'Parch', 'Embarked', 'Title', 'FamilySize')
+    # ('Pclass', 'Sex', 'Age', 'Parch', 'Fare', 'Embarked', 'Title')]
 
     elapsed_time = math.floor(time.time() - start)
     print ("total elapsed_time :{0}".format(elapsed_time) + "[sec]")
@@ -173,11 +250,13 @@ try:
     print('start')
     execute()
 
+    # output_best_features()
+
     # all_pattern: list = get_list_all_pattern_count(
     #     ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked', 'Title', 'FamilySize'],
     #     6)
     # print(all_pattern)
-    print(len(all_pattern))
+    # print(len(all_pattern))
 
 except Exception as e:
     print('error')
