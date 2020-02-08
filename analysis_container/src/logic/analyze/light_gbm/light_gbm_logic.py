@@ -68,7 +68,7 @@ class LightGbmLogic(AbstractLogic):
             'Type': 'GridSearch',
             'Score': grid_search.best_score_,
             'Params': grid_search.best_params_,
-            'Target_cols': self._input.target_cols
+            'Target_cols': self._input.X_train.columns
         })
 
         # X_trainとY_trainをtrainとvalidに分割
@@ -133,7 +133,7 @@ class LightGbmLogic(AbstractLogic):
             'Type': 'Default',
             'Score': np.mean(score_list) / 100,
             'Params': None,
-            'Target_cols': self._input.target_cols
+            'Target_cols': self._input.X_train.columns
         })
 
         self._output.results = results

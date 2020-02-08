@@ -44,9 +44,12 @@ def execute():
     Y_train = pd.read_pickle("data/output/Y_train.pkl")
     iPreProcessingInput.X_train = X_train
     iPreProcessingInput.Y_train = Y_train
+    # target_cols_list: list = get_list_all_pattern_count(
+    #     list(X_train.columns),
+    #     6)
     target_cols_list: list = get_list_all_pattern_count(
         list(X_train.columns),
-        6)
+        8)
 
     outputs: list = []
 

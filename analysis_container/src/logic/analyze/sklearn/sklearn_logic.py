@@ -63,7 +63,7 @@ class SklearnLogic(AbstractLogic):
                 'Type': 'GridSearch',
                 'Score': score,
                 'Params': clf.best_params_,
-                'Target_cols': self._input.target_cols
+                'Target_cols': self._input.X_train.columns
             })
 
         # ランダムサーチ
@@ -80,7 +80,7 @@ class SklearnLogic(AbstractLogic):
                 'Type': 'RandomSearch',
                 'Score': score,
                 'Params': clf.best_params_,
-                'Target_cols': self._input.target_cols
+                'Target_cols': self._input.X_train.columns
             })
 
         # デフォルトサーチ
@@ -93,7 +93,7 @@ class SklearnLogic(AbstractLogic):
             'Type': 'Default',
             'Score': score,
             'Params': None,
-            'Target_cols': self._input.target_cols
+            'Target_cols': self._input.X_train.columns
         })
 
         self._output.results = results

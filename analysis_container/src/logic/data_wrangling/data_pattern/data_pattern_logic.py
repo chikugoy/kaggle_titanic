@@ -29,7 +29,9 @@ class DataPatternLogic(AbstractLogic):
             if not col in self._output.target_cols:
                 drop_cols.append(col)
 
+        self._logger.debug(drop_cols)
+
         if len(drop_cols) > 0:
-            self._output.X_train.drop(drop_cols, axis=1)
+            self._output.X_train = self._output.X_train.drop(drop_cols, axis=1)
 
         return True
