@@ -2,6 +2,7 @@
 import sys
 import copy
 import time
+import math
 import pandas as pd
 
 from container.simulator_container import SimulatorContainer
@@ -159,12 +160,16 @@ def execute():
 
     pd.to_pickle(df_s, 'data/output/df_score.pkl')
 
-    elapsed_time = time.time() - start
+    elapsed_time = math.floor(time.time() - start)
     models = get_sklearn_models()
-    print ("model count:{0}".format((len(models) + 1) * len(target_cols_list)) + "件")
-    print ("target coll count:{0}".format(len(target_cols_list)) + "件")
-    print ("total execute count:{0}".format(len(models) + 1) + "件")
-    print ("elapsed_time:{0}".format(elapsed_time) + "[sec]")
+    model_count = len(models) + 1
+    target_cell_count = len(target_cols_list)
+    total_execute_count = target_cell_count + model_count
+    print ("target coll count  :{0}".format(target_cell_count) + "件")
+    print ("model count        :{0}".format(model_count) + "件")
+    print ("total execute count:{0}".format(total_execute_count) + "件")
+    print ("1 elapsed_time     :{0}".format(math.floor(elapsed_time / total_execute_count)) + "[sec]")
+    print ("total elapsed_time :{0}".format(elapsed_time) + "[sec]")
 
 
 def get_sklearn_models() -> list:
