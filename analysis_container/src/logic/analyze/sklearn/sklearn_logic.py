@@ -63,7 +63,8 @@ class SklearnLogic(AbstractLogic):
                 'Type': 'GridSearch',
                 'Score': score,
                 'Params': clf.best_params_,
-                'Target_cols': self._input.X_train.columns
+                'Target_cols': self._input.X_train.columns,
+                'Pred_y': pred_y
             })
 
         # ランダムサーチ
@@ -80,20 +81,32 @@ class SklearnLogic(AbstractLogic):
                 'Type': 'RandomSearch',
                 'Score': score,
                 'Params': clf.best_params_,
-                'Target_cols': self._input.X_train.columns
+                'Target_cols': self._input.X_train.columns,
+                'Pred_y': pred_y
             })
+
+        self._logger.debug(len(self._input.X_train))
+        self._logger.debug(len(test_X))
 
         # デフォルトサーチ
         model = copy.deepcopy(self._input.model)
         model.fit(train_X, train_y)
-        score = model.score(test_X, test_y)
+        pred_y = model.predict(test_X)
+
+        # 作成したモデルに学習に使用していない評価用のデータセットを入力し精度を確認
+        score = round(accuracy_score(test_y, pred_y) * 100, 2) / 100
+
+        # モデルを作成する段階でのモデルの識別精度
+        # score = round(model.score(train_X, train_y) * 100, 2) / 100
+
         self._logger.debug('サーチ方法:デフォルトサーチ =======================')
         self._logger.debug("スコア:" + str(score))
         results.append({
             'Type': 'Default',
             'Score': score,
             'Params': None,
-            'Target_cols': self._input.X_train.columns
+            'Target_cols': self._input.X_train.columns,
+            'Pred_y': pred_y
         })
 
         self._output.results = results

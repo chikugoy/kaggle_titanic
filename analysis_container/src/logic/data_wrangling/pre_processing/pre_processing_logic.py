@@ -159,8 +159,8 @@ class PreProcessingLogic(AbstractLogic):
             dataset['Fare'] = dataset['Fare'].astype(int)
 
         train_df = train_df.drop(['FareBand'], axis=1)
-        pd.to_pickle(train_df, self._input.output_x_train_path)
-        pd.to_pickle(test_df, self._input.output_y_train_path)
+        pd.to_pickle(train_df, 'data/output/train_df.pkl')
+        pd.to_pickle(test_df, 'data/output/test_df.pkl')
 
         # データを読み込ませる準備
         # X_trainには応答変数（答えとなる特徴量）を除いた予測変数（応答変数を予測するために使う特徴量のこと）を入れる

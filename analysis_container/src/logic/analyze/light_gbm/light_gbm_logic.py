@@ -42,6 +42,10 @@ class LightGbmLogic(AbstractLogic):
         # LightGBMの分類器をインスタンス化
         gbm = lgb.LGBMClassifier(objective='binary')
 
+        # X_trainとY_trainをtrainとvalidに分割
+        train_x, valid_x, train_y, valid_y = train_test_split(
+            self._input.X_train, self._input.Y_train, test_size=0.33, random_state=0)
+
         self._output.model_name = gbm.__class__.__name__
         self._logger.debug("モデル:{}".format(
             self._output.model_name) + " ***********************")
@@ -60,6 +64,7 @@ class LightGbmLogic(AbstractLogic):
         )
 
         grid_search.fit(self._input.X_train, self._input.Y_train)  # データを渡す
+        pred_y = grid_search.predict(valid_x)
 
         self._logger.debug('サーチ方法:グリッドサーチ =======================')
         self._logger.debug("ベストスコア:{}".format(grid_search.best_score_))
@@ -68,7 +73,8 @@ class LightGbmLogic(AbstractLogic):
             'Type': 'GridSearch',
             'Score': grid_search.best_score_,
             'Params': grid_search.best_params_,
-            'Target_cols': self._input.X_train.columns
+            'Target_cols': self._input.X_train.columns,
+            'Pred_y': pred_y
         })
 
         # X_trainとY_trainをtrainとvalidに分割
@@ -117,7 +123,7 @@ class LightGbmLogic(AbstractLogic):
                                      reg_lambda=10, importance_type='gain')
             gbm.fit(train_x, train_y, eval_set=[(valid_x, valid_y)],
                     early_stopping_rounds=20,
-                    categorical_feature=['Sex', 'Embarked', 'Age'],
+                    # categorical_feature=['Sex', 'Embarked', 'Age'],   # ここもパターンしたい
                     verbose=-1)  # 学習の状況を表示しない
 
             oof = gbm.predict(valid_x, num_iteration=gbm.best_iteration_)
@@ -133,7 +139,8 @@ class LightGbmLogic(AbstractLogic):
             'Type': 'Default',
             'Score': np.mean(score_list) / 100,
             'Params': None,
-            'Target_cols': self._input.X_train.columns
+            'Target_cols': self._input.X_train.columns,
+            'Pred_y': None
         })
 
         self._output.results = results

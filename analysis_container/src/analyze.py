@@ -44,12 +44,18 @@ def execute():
     Y_train = pd.read_pickle("data/output/Y_train.pkl")
     iPreProcessingInput.X_train = X_train
     iPreProcessingInput.Y_train = Y_train
+    # ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked', 'Title', 'FamilySize']
+    # iPreProcessingInput.X_train = None
+    # iPreProcessingInput.Y_train = None
+    target_cols_list: list = get_list_all_pattern_count(
+        ['Pclass', 'Sex', 'Age', 'Fare', 'Embarked', 'Title', 'FamilySize'],
+        8)
+    # target_cols_list: list = get_list_all_pattern_count(
+    #     ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked', 'Title', 'FamilySize'],
+    #     8)
     # target_cols_list: list = get_list_all_pattern_count(
     #     list(X_train.columns),
     #     6)
-    target_cols_list: list = get_list_all_pattern_count(
-        list(X_train.columns),
-        8)
 
     outputs: list = []
 
@@ -135,7 +141,7 @@ def execute():
         container.execute()
         outputs.append(container.get_logic_output())
 
-        # break
+        break
 
     # 分析結果整形・出力  ****************************************
 
