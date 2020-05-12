@@ -37,11 +37,11 @@ class PreProcessingLogic(AbstractLogic):
         if os.path.exists(self._input.output_y_train_path):
             self._output.Y_train = pd.read_pickle(self._input.output_y_train_path)
         
-        self._output.model = self._input.model
+        self._output.model = self._input.model if hasattr(self._input, 'model') else None
         self._output.cv_value = self._input.cv_value
         self._output.target_cols = self._input.target_cols
-        self._output.grid_search_params = self._input.grid_search_params
-        self._output.random_search_params = self._input.random_search_params
+        self._output.grid_search_params = self._input.grid_search_params if hasattr(self._input, 'grid_search_params') else None
+        self._output.random_search_params = self._input.random_search_params if hasattr(self._input, 'random_search_params') else None
 
         if (not self._output.X_train is None and not self._output.Y_train is None):
             return True
