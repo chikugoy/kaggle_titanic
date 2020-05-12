@@ -1,12 +1,12 @@
 # from https://qiita.com/komiya_____/items/96c14485eb035701e218
 version: '3'  # docker-composeファイルの書式バージョン。最新の’３’を指定（2019/6/27現在）
 services:
-  dev: # 任意の名前（ディレクトリ名 + dev がコンテナ名となります）
+  dev:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker\Dockerfile
     image: anaconda
     ports:
-    - "8888:8888"
+    - "8889:8888"
     volumes:
     - .:/workdir

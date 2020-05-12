@@ -40,22 +40,13 @@ def execute():
     iPreProcessingInput.cv_value = 5
 
     # 新規にデータ事前処理をする場合はコメントアウト
-    X_train = pd.read_pickle("data/output/X_train.pkl")
-    Y_train = pd.read_pickle("data/output/Y_train.pkl")
-    iPreProcessingInput.X_train = X_train
-    iPreProcessingInput.Y_train = Y_train
-    # ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked', 'Title', 'FamilySize']
-    # iPreProcessingInput.X_train = None
-    # iPreProcessingInput.Y_train = None
+    # X_train = pd.read_pickle("data/output/X_train.pkl")
+    # Y_train = pd.read_pickle("data/output/Y_train.pkl")
+    # iPreProcessingInput.X_train = X_train
+    # iPreProcessingInput.Y_train = Y_train
     target_cols_list: list = get_list_all_pattern_count(
         ['Pclass', 'Sex', 'Age', 'Fare', 'Embarked', 'Title', 'FamilySize'],
         8)
-    # target_cols_list: list = get_list_all_pattern_count(
-    #     ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked', 'Title', 'FamilySize'],
-    #     8)
-    # target_cols_list: list = get_list_all_pattern_count(
-    #     list(X_train.columns),
-    #     6)
 
     outputs: list = []
 
@@ -76,10 +67,6 @@ def execute():
             'DecisionTreeClassifier',
             'RandomForestClassifier'
         ]
-        # execute_model_names = []
-        # execute_model_names = [
-        #     'RandomForestClassifier'
-        # ]
 
         for model in models:
             if not model['model_name'] in execute_model_names:

@@ -2,25 +2,15 @@
 docker build -t anaconda .
 docker-compose up -d
 
-# よく使うコマンド
-docker-compose exec dev bash
+# 分析実行
+cd /analysis_container/src
+python analyze.py
 
-python titanic.py
+# 分析結果確認
+python analyze.py
 
-git add .
-git commit -m "WIP"
+# 分析結果確認
+python commit_pre_processing.py
 
-git fetch origin master
-git pull origin master
-
-git push origin master
-
-<!-- docker run -it \
--p 8888:8888 \
---rm \
---name anaconda_container \ 
---mount type=bind,src=`pwd`,dst=/workdir  \
-anaconda
-
-docker run -it -p 8888:8888 --name anaconda_container \ 
---mount type=bind,src=`pwd`,dst=/workdir anacond -->
+# 提出ファイル出力
+python commit.py

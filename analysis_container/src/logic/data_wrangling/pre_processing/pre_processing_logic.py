@@ -15,7 +15,11 @@ sys.path.append('/../../')
 
 
 class PreProcessingLogic(AbstractLogic):
+    """事前データ処理クラス
 
+    Arguments:
+        AbstractLogic {AbstractLogic} -- [description]
+    """
     def __init__(self, inputValue: AbstractInterface, output: AbstractInterface):
         super().__init__(inputValue, output)
 
@@ -177,6 +181,6 @@ class PreProcessingLogic(AbstractLogic):
 
         self._output.X_train = X_train
         self._output.Y_train = Y_train
-        # self._output.X_test = X_test
+        self._output.X_test = X_test
 
         return True
