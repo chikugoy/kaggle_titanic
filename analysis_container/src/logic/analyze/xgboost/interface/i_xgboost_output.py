@@ -7,18 +7,12 @@ sys.path.append('./../../../')
 from logic.abstract_interface import AbstractInterface
 
 
-class ISklearnInput(AbstractInterface):
+class IXGBoostOutput(AbstractInterface):
 
-    model:any
-    cv_value: int
-    X_train: any
-    Y_train: any
-    grid_search_params: dict
-    random_search_params: dict
-    target_cols: list
-
-    sklearn_type: int
+    model_name: str
+    results: list
 
     def __init__(self):
         super().__init__()
         pass
+

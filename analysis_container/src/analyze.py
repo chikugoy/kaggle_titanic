@@ -5,29 +5,39 @@ import sys
 import copy
 import time
 import math
+import scipy.stats
 import pandas as pd
 
 from container.simulator_container import SimulatorContainer
 from container.logic_dict import LogicDict
-from logic.analyze.sklearn.interface.i_sklearn_input import ISklearnInput
 from logic.data_wrangling.pre_processing.interface.i_pre_processing_input import IPreProcessingInput
+from logic.analyze.sklearn.interface.i_sklearn_input import ISklearnInput
+from logic.analyze.sklearn.enum.e_sklearn_type import ESklearnType 
 from logic.analyze.light_gbm.interface.i_light_gbm_input import ILightGbmInput
+from logic.analyze.light_gbm.enum.e_light_gbm_type import ELightGbmType 
+from logic.analyze.xgboost.interface.i_xgboost_input import IXGBoostInput
+from logic.analyze.xgboost.enum.e_xgboost_type import EXGBoostType 
 
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC, LinearSVC
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import Lasso
+from sklearn.linear_model import ElasticNet
+from sklearn.kernel_ridge import KernelRidge
 from sklearn.linear_model import Perceptron
-from sklearn.linear_model import SGDClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeRegressor
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import cross_val_score, train_test_split, KFold
-import scipy.stats
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.svm import SVC, LinearSVC
+from sklearn.naive_bayes import GaussianNB
 
-import lightgbm as lgb
-
+# if (len(sys.argv) > 1) and (sys.argv[1] == "debug"):
+#     import ptvsd
+#     print("waiting...")
+#     ptvsd.enable_attach("my_secret", address=('0.0.0.0', 8891))
+#     ptvsd.wait_for_attach()
 
 def execute():
     start = time.time()
@@ -77,6 +87,7 @@ def execute():
             iPreProcessingInput.model = model['model_instance']
             iPreProcessingInput.grid_search_params = model['grid_search_params']
             iPreProcessingInput.random_search_params = model['random_search_params']
+            iPreProcessingInput.sklearn_type = ESklearnType.CLASSIFICATION
 
             logic_dict: LogicDict = LogicDict(
                 [
@@ -86,11 +97,11 @@ def execute():
                         LogicDict.LOGIC_EXEC_INPUT_INSTANCE: iPreProcessingInput,
                         LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'ISklearnInput',
                     },
-                    {
-                        LogicDict.LOGIC_EXEC_KEY: 'DataPatternLogic',
-                        LogicDict.LOGIC_EXEC_INPUT_KEY: 'ISklearnInput',
-                        LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'ISklearnInput',
-                    },
+                    # {
+                    #     LogicDict.LOGIC_EXEC_KEY: 'DataPatternLogic',
+                    #     LogicDict.LOGIC_EXEC_INPUT_KEY: 'ISklearnInput',
+                    #     LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'ISklearnInput',
+                    # },
                     {
                         LogicDict.LOGIC_EXEC_KEY: 'SklearnLogic',
                         LogicDict.LOGIC_EXEC_INPUT_KEY: 'ISklearnInput',
@@ -105,6 +116,7 @@ def execute():
 
 
         # LightGBM分析  ****************************************
+        iPreProcessingInput.light_gbm_type = ELightGbmType.CLASSIFICATION        
         logic_dict: LogicDict = LogicDict(
             [
                 {
@@ -113,15 +125,43 @@ def execute():
                     LogicDict.LOGIC_EXEC_INPUT_INSTANCE: iPreProcessingInput,
                     LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'ILightGbmInput',
                 },
-                {
-                    LogicDict.LOGIC_EXEC_KEY: 'DataPatternLogic',
-                    LogicDict.LOGIC_EXEC_INPUT_KEY: 'ILightGbmInput',
-                    LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'ILightGbmInput',
-                },
+                # {
+                #     LogicDict.LOGIC_EXEC_KEY: 'DataPatternLogic',
+                #     LogicDict.LOGIC_EXEC_INPUT_KEY: 'ILightGbmInput',
+                #     LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'ILightGbmInput',
+                # },
                 {
                     LogicDict.LOGIC_EXEC_KEY: 'LightGbmLogic',
                     LogicDict.LOGIC_EXEC_INPUT_KEY: 'ILightGbmInput',
                     LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'ILightGbmOutput',
+                }
+            ]
+        )
+
+        container = SimulatorContainer(logic_dict)
+        container.execute()
+        outputs.append(container.get_logic_output())
+
+
+        # XGBoost分析  ****************************************
+        iPreProcessingInput.xgboost_type = EXGBoostType.CLASSIFICATION        
+        logic_dict: LogicDict = LogicDict(
+            [
+                {
+                    LogicDict.LOGIC_EXEC_KEY: 'PreProcessingLogic',
+                    LogicDict.LOGIC_EXEC_INPUT_KEY: 'IPreProcessingInput',
+                    LogicDict.LOGIC_EXEC_INPUT_INSTANCE: iPreProcessingInput,
+                    LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'IXGBoostInput',
+                },
+                # {
+                #     LogicDict.LOGIC_EXEC_KEY: 'DataPatternLogic',
+                #     LogicDict.LOGIC_EXEC_INPUT_KEY: 'IXGBoostInput',
+                #     LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'IXGBoostInput',
+                # },
+                {
+                    LogicDict.LOGIC_EXEC_KEY: 'XGBoostLogic',
+                    LogicDict.LOGIC_EXEC_INPUT_KEY: 'IXGBoostInput',
+                    LogicDict.LOGIC_EXEC_OUTPUT_KEY: 'IXGBoostOutput',
                 }
             ]
         )
@@ -135,17 +175,42 @@ def execute():
     # 分析結果整形・出力  ****************************************
 
     output_model_infos: dict = {
-        'model': [],
-        'type': [],
-        'score': [],
-        'params': [],
-        'target_cols': [],
+        'model'         : [],
+        'type'          : [],
+        'score'         : [],
+        'precision'     : [],
+        'recall'        : [],
+        'f1'            : [],
+        'classification': [],
+        'params'        : [],
+        'target_cols'   : [],
     }
     for output in outputs:
         for result in output.results:
             output_model_infos['model'].append(output.model_name)
             output_model_infos['type'].append(result['Type'])
             output_model_infos['score'].append(result['Score'])
+
+            if 'Precision' in result:
+                output_model_infos['precision'].append(result['Precision'])
+            else:
+                output_model_infos['precision'].append(None)
+
+            if 'Recall' in result:
+                output_model_infos['recall'].append(result['Recall'])
+            else:
+                output_model_infos['recall'].append(None)
+
+            if 'F1' in result:
+                output_model_infos['f1'].append(result['F1'])
+            else:
+                output_model_infos['f1'].append(None)
+
+            if 'Classification' in result:
+                output_model_infos['classification'].append(result['Classification'])
+            else:
+                output_model_infos['classification'].append(None)
+
             output_model_infos['params'].append(result['Params'])
             if 'Target_cols' in result:
                 output_model_infos['target_cols'].append(result['Target_cols'])           
@@ -157,6 +222,8 @@ def execute():
     print(df_s)
 
     pd.to_pickle(df_s, 'data/output/df_score.pkl')
+    # import pandas as pd
+    # pd.read_pickle('../analysis_container/src/data/output/df_score.pkl')
 
     elapsed_time = math.floor(time.time() - start)
     models = get_sklearn_models()
@@ -171,6 +238,33 @@ def execute():
 
 def get_sklearn_models() -> list:
     return [
+        {
+            'model_name': 'GradientBoostingRegressor',
+            'model_instance': GradientBoostingRegressor(n_estimators=3000, learning_rate=0.05,
+                                   max_depth=4, max_features='sqrt',
+                                   min_samples_leaf=15, min_samples_split=10, 
+                                   loss='huber', random_state =5),
+            'grid_search_params': {},
+            'random_search_params': {}
+        },
+        {
+            'model_name': 'Lasso',
+            'model_instance': Lasso(alpha =0.0005, random_state=1),
+            'grid_search_params': {},
+            'random_search_params': {}
+        },
+        {
+            'model_name': 'ElasticNet',
+            'model_instance': ElasticNet(alpha=0.0005, l1_ratio=.9, random_state=3),
+            'grid_search_params': {},
+            'random_search_params': {}
+        },
+        {
+            'model_name': 'KernelRidge',
+            'model_instance': KernelRidge(alpha=0.6, kernel='polynomial', degree=2, coef0=2.5),
+            'grid_search_params': {},
+            'random_search_params': {}
+        },
         {
             # ロジスティック回帰(分類)
             'model_name': 'LogisticRegression',
@@ -268,9 +362,39 @@ def get_sklearn_models() -> list:
             }
         },
         {
+            # DecisionTreeRegressor
+            'model_name': 'DecisionTreeRegressor',
+            'model_instance': DecisionTreeRegressor(),
+            'grid_search_params': {
+                # "criterion": ["gini", "entropy"],
+                # "splitter": ["best", "random"],
+                # "max_depth": [i for i in range(1, 11)],
+                # "min_samples_split": [i for i in range(2, 11)],
+                # "min_samples_leaf": [i for i in range(1, 11)],
+                # "random_state": [i for i in range(0, 101)]
+            },
+            'random_search_params': {
+            }
+        },
+        {
             # RandomForestClassifier
             'model_name': 'RandomForestClassifier',
             'model_instance': RandomForestClassifier(n_estimators=100),
+            'grid_search_params': {
+                # "criterion": ["gini", "entropy"],
+                # "splitter": ["best", "random"],
+                # "max_depth": [i for i in range(1, 11)],
+                # "min_samples_split": [i for i in range(2, 11)],
+                # "min_samples_leaf": [i for i in range(1, 11)],
+                # "random_state": [i for i in range(0, 101)]
+            },
+            'random_search_params': {
+            }
+        },
+        {
+            # RandomForestRegressor
+            'model_name': 'RandomForestRegressor',
+            'model_instance': RandomForestRegressor(n_estimators=100),
             'grid_search_params': {
                 # "criterion": ["gini", "entropy"],
                 # "splitter": ["best", "random"],

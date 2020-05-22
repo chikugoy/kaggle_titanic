@@ -1,32 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
 import copy
 import numpy as np
 import pandas as pd
 import lightgbm as lgb
+
 from sklearn.metrics import f1_score
-from sklearn.model_selection import cross_val_score, train_test_split, KFold
-from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.linear_model import SGDClassifier
-from sklearn.linear_model import Perceptron
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC, LinearSVC
-from sklearn.linear_model import LogisticRegression
-import seaborn as sns
-import scipy.stats
-import random as rnd
+
 from logic.abstract_interface import AbstractInterface
 from logic.abstract_logic import AbstractLogic
-import sys
+from logic.analyze.sklearn.enum.e_sklearn_type import ESklearnType
+from .sklearn_logic_classification import SklearnLogicClassification
+from .sklearn_logic_regression import SklearnLogicRegression
 
 sys.path.append('/../../')
-
 
 class SklearnLogic(AbstractLogic):
 
@@ -85,30 +77,17 @@ class SklearnLogic(AbstractLogic):
                 'Pred_y': pred_y
             })
 
-        self._logger.debug(len(self._input.X_train))
-        self._logger.debug(len(test_X))
-
         # デフォルトサーチ
         model = copy.deepcopy(self._input.model)
-        model.fit(train_X, train_y)
-        pred_y = model.predict(test_X)
 
-        # 作成したモデルに学習に使用していない評価用のデータセットを入力し精度を確認
-        score = round(accuracy_score(test_y, pred_y) * 100, 2) / 100
+        ret = False
+        if self._input.sklearn_type == ESklearnType.CLASSIFICATION:
+            classification = SklearnLogicClassification(self._input, self._output)
+            ret = classification.fit(model, self._input.X_train, self._input.Y_train, test_X, test_y)
+            self._output = classification._output
+        else:
+            regression = SklearnLogicRegression(self._input, self._output)
+            ret = regression.fit(model, train_X, train_y)
+            self._output = regression._output
 
-        # モデルを作成する段階でのモデルの識別精度
-        # score = round(model.score(train_X, train_y) * 100, 2) / 100
-
-        self._logger.debug('サーチ方法:デフォルトサーチ =======================')
-        self._logger.debug("スコア:" + str(score))
-        results.append({
-            'Type': 'Default',
-            'Score': score,
-            'Params': None,
-            'Target_cols': self._input.X_train.columns,
-            'Pred_y': pred_y
-        })
-
-        self._output.results = results
-
-        return True
+        return ret

@@ -23,6 +23,8 @@ class IPreProcessingInput(AbstractInterface):
     random_search_params: dict
     target_cols: list
 
+    sklearn_type: int
+
     def __init__(self):
         super().__init__()
         pass
